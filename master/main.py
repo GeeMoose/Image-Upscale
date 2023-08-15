@@ -70,7 +70,7 @@ def imageUpscaling():
             # imagePath = inputDir + SLASH + file_obj.filename
             model = request.form.get('model')
             saveImageAs =  file_ext[1:]
-            outFile = outputDir + SLASH + file_name + "_upscayl_" + scale + "x_" + model + "." + saveImageAs
+            outFile = outputDir + SLASH + file_name + "_upscaling_" + scale + "x_" + model + "." + saveImageAs
             arguments = getSingleImageArguments(inputDir,fullfileName,outFile,modelsPath,model,scale,gpuid,saveImageAs)
             check_call(spawnUpscaling(COMMANDS,arguments))
 

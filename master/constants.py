@@ -3,4 +3,4 @@
 ###############
 
 SLASH = "/"
-COMMANDS = "../bin/upscaling-realesrgan"
+COMMANDS = "../bin/upscaling-realesrgan.exe"

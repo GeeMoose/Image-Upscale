@@ -1,8 +1,18 @@
+from flask import Flask
+from flask import request
+from flask import send_file, jsonify
+
+from  flask_cors import CORS
+
 from subprocess import check_call
 
 from constants import *
 from instance import *
 
+import os, base64
+
+app = Flask(__name__)
+CORS(app)
 
 # 批处理超分
 def folder_upscale_image():
@@ -38,17 +48,51 @@ def spawnUpscaling(commands,arguments):
     args = ','.join([arg for arg in arguments])
     executor = commands + ',' + args
     return executor.split(',')
-    
-def main():
-    
-    # instants实例
-    # commands args参数组合
-    arguments = getSingleImageArguments(inputDir,fullfileName,outFile,modelsPath,model,scale,gpuid,saveImageAs)
-    check_call(spawnUpscaling(COMMANDS,arguments))
-    return
+
+@app.route('/')
+def index():
+    return "Editing Image Test"
+
+@app.route('/image-upscaling', methods=['GET','POST'])
+def imageUpscaling():
+    if request.method == 'GET':
+        return "Upscaling Image Test"
+    if request.method == 'POST':
+        # 如果ImageFile上传文件不符合规范
+        print(request.files.get('ImageFile') )
+        if request.files.get('ImageFile')  == None:
+            return jsonify({'errors': 'ImageFile does not meet specifications'})
+        file_obj = request.files['ImageFile']
+        if file_obj != None and file_obj.filename != "":
+            fullfileName = file_obj.filename
+            file_name,file_ext =  os.path.splitext(fullfileName)
+            file_obj.save(inputDir + SLASH + fullfileName)
+            # imagePath = inputDir + SLASH + file_obj.filename
+            model = request.form.get('model')
+            saveImageAs =  file_ext[1:]
+            outFile = outputDir + SLASH + file_name + "_upscayl_" + scale + "x_" + model + "." + saveImageAs
+            arguments = getSingleImageArguments(inputDir,fullfileName,outFile,modelsPath,model,scale,gpuid,saveImageAs)
+            check_call(spawnUpscaling(COMMANDS,arguments))
+
+            with open(outFile, "rb") as img_file:
+                Response = base64.b64encode(img_file.read())
+                return Response 
+
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=80, debug=True)
 
 
-if __name__ == '__main__' :
-    main()
+     
+# def main():
+    
+#     # instants实例
+#     # commands args参数组合
+#     arguments = getSingleImageArguments(inputDir,fullfileName,outFile,modelsPath,model,scale,gpuid,saveImageAs)
+#     check_call(spawnUpscaling(COMMANDS,arguments))
+#     return
+
+
+# if __name__ == '__main__' :
+#     main()
     
     

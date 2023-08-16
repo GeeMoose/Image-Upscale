@@ -89,7 +89,6 @@ def imageUpscaling():
         return "Upscaling Image Test"
     if request.method == 'POST':
         # 如果ImageFile上传文件不符合规范
-        print(request.files.get('ImageFile') )
         if request.files.get('ImageFile')  == None:
             return jsonify({'errors': 'ImageFile does not meet specifications'})
         file_obj = request.files['ImageFile']

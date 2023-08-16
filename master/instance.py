@@ -7,7 +7,7 @@ outputDir = "../output"
 # modelsPath upscaling model路径
 modelsPath = "../models"
 # model upscaling model名称
-model = "realesrgan-x4plus"
+model = "RealESRGAN_General_x4_v3"
 # scaleFactor = 4
 scale = "4"
 # gpuid 运行的GPU实例

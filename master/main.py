@@ -5,6 +5,7 @@ from flask import send_file, jsonify
 from  flask_cors import CORS
 
 from subprocess import check_call
+from PIL import Image
 
 from constants import *
 from instance import *
@@ -67,12 +68,21 @@ def imageUpscaling():
             fullfileName = file_obj.filename
             file_name,file_ext =  os.path.splitext(fullfileName)
             file_obj.save(inputDir + SLASH + fullfileName)
-            # imagePath = inputDir + SLASH + file_obj.filename
+            imagePath = inputDir + SLASH + file_obj.filename
             model = request.form.get('model')
+            imgScale = request.form.get('scale')
             saveImageAs =  file_ext[1:]
-            outFile = outputDir + SLASH + file_name + "_upscaling_" + scale + "x_" + model + "." + saveImageAs
+            outFile = outputDir + SLASH + file_name + "_upscaling_" + imgScale + "x_" + model + "." + saveImageAs
             arguments = getSingleImageArguments(inputDir,fullfileName,outFile,modelsPath,model,scale,gpuid,saveImageAs)
             check_call(spawnUpscaling(COMMANDS,arguments))
+            
+            # 2x、3x 缩放
+            # e.g. '2' < '3' '3' <  '4'
+            if imgScale < scale:
+                origin_im = Image.open(imagePath)
+                upscale_im = Image.open(outFile)
+                new_upscale_im = upscale_im.resize((origin_im.size[0] * int(imgScale), origin_im.size[1] * int(imgScale)))
+                new_upscale_im.save(outFile)
 
             with open(outFile, "rb") as img_file:
                 Response = base64.b64encode(img_file.read())

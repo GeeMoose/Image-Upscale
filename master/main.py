@@ -101,6 +101,7 @@ def imageUpscaling():
             model = request.form.get('model')
             imgScale = request.form.get('scale')
             saveImageAs =  file_ext[1:]
+            # TODO: 到底要不要alpha channel
             outFile = outputDir + SLASH + file_name + "_upscaling_" + imgScale + "x_" + model + "." + saveImageAs
             if int(imgScale) >= DELIMITER:
                 # 双倍超分

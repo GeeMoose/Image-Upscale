@@ -20,13 +20,42 @@ def folder_upscale_image():
     return 
 
 # 双倍超分
-def double_upscale_image():
-    return 
+def double_upscale_image(inputDir,fullfileName,outFile,modelsPath,model,scale,gpuid,saveImageAs):
+    arguments =getSingleImageArguments(inputDir,fullfileName,outFile,modelsPath,model,scale,gpuid,saveImageAs)
+    ret = check_call(spawnUpscaling(COMMANDS,arguments))
+    if ret != 0:
+        return jsonify({'errors': 'Double Upscale Image CalledProcessError： '+ ret})
+    arguments =getDoubleUpscaleSecondPassArguments(outFile,modelsPath,model,scale,gpuid,saveImageAs)
+    ret = check_call(spawnUpscaling(COMMANDS,arguments))
+    if ret != 0:
+        return jsonify({'errors': 'Double Upscale Images SecondPass CalledProcessError：'+ ret})
 
 # 超分
-def upscale_image():
-    return 
+def upscale_image(inputDir,fullfileName,outFile,modelsPath,model,scale,gpuid,saveImageAs):
+    arguments =getSingleImageArguments(inputDir,fullfileName,outFile,modelsPath,model,scale,gpuid,saveImageAs)
+    ret = check_call(spawnUpscaling(COMMANDS,arguments))
+    if ret != 0 :
+        return jsonify({'errors': 'Upscale Image CalledProcessError： '+ ret})
+    
 
+def getDoubleUpscaleSecondPassArguments(outFile,modelsPath,model,scale,gpuid,saveImageAs):
+    return [
+    "-i",
+    outFile,
+    "-o",
+    outFile,
+    "-s",
+    scale,
+    "-m",
+    modelsPath,
+    "-n",
+    model,
+    "-g",
+    gpuid,
+    "-f",
+    saveImageAs,
+  ]
+    
 def getSingleImageArguments(inputDir,fullfileName,outFile,modelsPath,model,scale,gpuid,saveImageAs):
     return [
     "-i",
@@ -73,16 +102,25 @@ def imageUpscaling():
             imgScale = request.form.get('scale')
             saveImageAs =  file_ext[1:]
             outFile = outputDir + SLASH + file_name + "_upscaling_" + imgScale + "x_" + model + "." + saveImageAs
-            arguments = getSingleImageArguments(inputDir,fullfileName,outFile,modelsPath,model,scale,gpuid,saveImageAs)
-            check_call(spawnUpscaling(COMMANDS,arguments))
-            
-            # 2x、3x 缩放
-            # e.g. '2' < '3' '3' <  '4'
-            if imgScale < scale:
-                origin_im = Image.open(imagePath)
-                upscale_im = Image.open(outFile)
-                new_upscale_im = upscale_im.resize((origin_im.size[0] * int(imgScale), origin_im.size[1] * int(imgScale)))
-                new_upscale_im.save(outFile)
+            if int(imgScale) >= DELIMITER:
+                # 双倍超分
+                double_upscale_image(inputDir,fullfileName,outFile,modelsPath,model,scale,gpuid,saveImageAs)
+                # 8x 缩放
+                if imgScale != DOUBLEUPSCALEFSCALEFACTOR:
+                    origin_im = Image.open(imagePath)
+                    upscale_im = Image.open(outFile)
+                    new_upscale_im = upscale_im.resize((origin_im.size[0] * int(imgScale), origin_im.size[1] * int(imgScale)))
+                    new_upscale_im.save(outFile)
+               
+            else:
+                upscale_image(inputDir,fullfileName,outFile,modelsPath,model,scale,gpuid,saveImageAs)
+                # 2x、3x 缩放
+                # e.g. '2' < '3' '3' <  '4'
+                if imgScale < scale:
+                    origin_im = Image.open(imagePath)
+                    upscale_im = Image.open(outFile)
+                    new_upscale_im = upscale_im.resize((origin_im.size[0] * int(imgScale), origin_im.size[1] * int(imgScale)))
+                    new_upscale_im.save(outFile)
 
             with open(outFile, "rb") as img_file:
                 Response = base64.b64encode(img_file.read())

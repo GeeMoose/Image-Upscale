@@ -16,3 +16,7 @@ tqdm
 yapf
 psutil
 opencv-python-headless
+basicsr
+facexlib
+gfpgan
+realesrgan

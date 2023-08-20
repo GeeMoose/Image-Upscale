@@ -9,6 +9,7 @@ from PIL import Image
 
 from constants import *
 from instance import *
+from figure import figure_inference
 
 import os, base64
 
@@ -135,8 +136,10 @@ if __name__ == '__main__':
     
 #     # instants实例
 #     # commands args参数组合
-#     arguments = getSingleImageArguments(inputDir,fullfileName,outFile,modelsPath,model,scale,gpuid,saveImageAs)
-#     check_call(spawnUpscaling(COMMANDS,arguments))
+#     file_name, _ =  os.path.splitext(fullfileName)
+#     input_img = inputDir + SLASH + "images.jpg"
+#     outFile = outputDir + SLASH + "images" + "_upscaling_" + scale + "x_" + 'GFPGANv1.3.pth' + "." + saveImageAs
+#     figure_inference(input_img,outFile,scale,modelsPath,'GFPGANv1.3.pth',gpuid,saveImageAs)
 #     return
 
 

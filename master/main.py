@@ -137,9 +137,11 @@ if __name__ == '__main__':
 #     # instants实例
 #     # commands args参数组合
 #     file_name, _ =  os.path.splitext(fullfileName)
-#     input_img = inputDir + SLASH + "images.jpg"
-#     outFile = outputDir + SLASH + "images" + "_upscaling_" + scale + "x_" + 'GFPGANv1.3.pth' + "." + saveImageAs
-#     figure_inference(input_img,outFile,scale,modelsPath,'GFPGANv1.3.pth',gpuid,saveImageAs)
+#     inputImg = inputDir + SLASH + "images.jpg"
+#     generalModel = 'RealESRGAN_x2plus.pth'
+#     figureModel = 'GFPGANv1.4.pth'
+#     outFile = outputDir + SLASH + "images" + "_upscaling_" + scale + "x_" + figureModel + "." + saveImageAs
+#     figure_inference(inputImg, outFile, modelsPath, generalModel, figureModel, scale, gpuid, saveImageAs)
 #     return
 
 

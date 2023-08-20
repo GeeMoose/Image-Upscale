@@ -1,0 +1,4 @@
+# ignored big file
+master/gfpgan/*
+models/GFPGAN1.3.pth
+models/GFPGAN1.4.pth

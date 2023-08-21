@@ -103,7 +103,11 @@ def imageUpscaling():
             saveImageAs =  file_ext[1:]
             # TODO: 到底要不要alpha channel
             outFile = outputDir + SLASH + file_name + "_upscaling_" + imgScale + "x_" + model + "." + saveImageAs
-            if int(imgScale) >= DELIMITER:
+            if model == FIGURE_MODEL or model == FIGURE_PRO_MODEL :
+                inputImg = inputDir + SLASH + fullfileName
+                figure_inference(inputImg, outFile, modelsPath, FIGURE_BACKGROUND_MODEL, model, scale, gpuid, saveImageAs)
+                
+            elif int(imgScale) >= DELIMITER:
                 # 双倍超分
                 double_upscale_image(inputDir,fullfileName,outFile,modelsPath,model,scale,gpuid,saveImageAs)
                 # 8x 缩放

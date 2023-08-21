@@ -41,7 +41,7 @@ def figure_inference(input_img, outFile, models_path, general_model, figure_mode
             img_mode = None
 
         h, w = img.shape[0:2]
-        if h > 3500 or w > 3500:
+        if h > 5000 or w > 5000:
             print(f'origin image {input_img} is too large size')
             return None, None
         
@@ -68,7 +68,14 @@ def figure_inference(input_img, outFile, models_path, general_model, figure_mode
         
         if img_mode == 'RGBA' and saveImageAs != 'png':  # RGBA images should be saved in png format
             saveImageAs = 'png'
-        # save_path = f'../../output/{img_name}_out.{saveImageAs}'
+            tmp = 0
+            for i in range(len(outFile)-1,-1,-1):
+                if outFile[i] == ".":
+                    tmp = i
+                    break
+            if tmp > 0:
+                outFile = outFile[0:tmp + 1] + saveImageAs
+
         cv2.imwrite(outFile, output)
 
         output = cv2.cvtColor(output, cv2.COLOR_BGR2RGB)

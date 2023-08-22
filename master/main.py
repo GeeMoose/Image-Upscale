@@ -105,7 +105,7 @@ def imageUpscaling():
             outFile = outputDir + SLASH + file_name + "_upscaling_" + imgScale + "x_" + model + "." + saveImageAs
             if model == FIGURE_MODEL or model == FIGURE_PRO_MODEL :
                 inputImg = inputDir + SLASH + fullfileName
-                figure_inference(inputImg, outFile, modelsPath, FIGURE_BACKGROUND_MODEL, model, scale, gpuid, saveImageAs)
+                figure_inference(inputImg, outFile, modelsPath, FIGURE_BACKGROUND_MODEL, model, imgScale, gpuid, saveImageAs)
                 
             elif int(imgScale) >= DELIMITER:
                 # 双倍超分

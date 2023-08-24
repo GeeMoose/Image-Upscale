@@ -20,7 +20,35 @@ detection_Resnet50_Final.pth
 
 parsing_parsenet.pth
 
-## 日志模块
+## Dir Construct
+
+```code
+Image-Upscale/
+|
+|-- assets/                         # Directory to store assets
+|-- bin/                            # Directory for image-upscale executor
+|-- master/                         # Directory for main processors
+|   |-- figure                      # Preprocessing functions and utilities
+|   |-- |-- figureInference.py      # Figure model processing scripts 
+|   |-- gfpgan                      # Detect figure basic model
+|   |-- |-- detection_Resnet50_Final.pth # Detect protrait 
+|   |-- |-- parsing_parsenet.pth         # Parsing protrait
+|   |-- constants.py                # File contains all default constants
+|   |-- instance.py                 # Input args test file
+|   |-- logsConfig.py               # Logs config file
+|   |-- main.py                     # main file
+|
+|-- models/                         # Directory for saving all models
+|
+|-- output/                         # Directory for output image file
+|-- .gitignore                      # not uploaded file or dir
+|-- LICENSE                         # MIT LICENSE
+|-- README.md                       # Project documentation and instructions
+|-- requirements.txt                # List of dependencies and required libraries
+
+```
+
+## LOGGING MODULE
 
 master/constants.py的 DEBUG_MODE 决定日志是否开启debug模式
 

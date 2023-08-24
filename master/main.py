@@ -2,7 +2,7 @@ from flask import Flask
 from flask import request
 from flask import send_file, jsonify
 
-from  flask_cors import CORS
+from flask_cors import CORS
 
 from subprocess import check_call
 from PIL import Image
@@ -10,11 +10,18 @@ from PIL import Image
 from constants import *
 from instance import *
 from figure import figure_inference
+from logsConfig import configure_logging
 
 import os, base64
+import logging
 
 app = Flask(__name__)
 CORS(app)
+
+# Set up logging module
+configure_logging()
+
+logger = logging.getLogger(__name__)
 
 # 批处理超分
 def folder_upscale_image():
@@ -23,19 +30,36 @@ def folder_upscale_image():
 # 双倍超分
 def double_upscale_image(inputDir,fullfileName,outFile,modelsPath,model,scale,gpuid,saveImageAs):
     arguments =getSingleImageArguments(inputDir,fullfileName,outFile,modelsPath,model,scale,gpuid,saveImageAs)
+    logger.info('INFO: Upscale Image has ready to invoke at first time.')
+    logger.debug('DEBUG: Upscale Image has ready to invoke at first time.')
     ret = check_call(spawnUpscaling(COMMANDS,arguments))
+    logger.info('INFO: Upscale Image has been invoked at first time.')
+    logger.debug('DEBUG: Upscale Image has been invoked at first time.')
     if ret != 0:
+        logger.error("ERROR: Double Upscale Image has happened CalledProcessError."
+                     "errors have happened on first time")
         return jsonify({'errors': 'Double Upscale Image CalledProcessError： '+ ret})
     arguments =getDoubleUpscaleSecondPassArguments(outFile,modelsPath,model,scale,gpuid,saveImageAs)
+    logger.info('INFO: Upscale Image has ready to invoke at second time.')
+    logger.debug('DEBUG: Upscale Image has ready to invoke at second time.')
     ret = check_call(spawnUpscaling(COMMANDS,arguments))
+    logger.info('INFO: Upscale Image has been invoked at second time.')
+    logger.debug('DEBUG: Upscale Image has been invoked at second time.')
     if ret != 0:
+        logger.error("ERROR: Double Upscale Image has happened CalledProcessError."
+                     "errors have happened on second time")
         return jsonify({'errors': 'Double Upscale Images SecondPass CalledProcessError：'+ ret})
 
 # 超分
 def upscale_image(inputDir,fullfileName,outFile,modelsPath,model,scale,gpuid,saveImageAs):
     arguments =getSingleImageArguments(inputDir,fullfileName,outFile,modelsPath,model,scale,gpuid,saveImageAs)
+    logger.info('INFO: Upscale Image has ready to invoke.')
+    logger.debug('DEBUG: Upscale Image has ready to invoke.')
     ret = check_call(spawnUpscaling(COMMANDS,arguments))
+    logger.info('INFO: Upscale Image has been invoked.')
+    logger.debug('DEBUG: Upscale Image has been invoked.')
     if ret != 0 :
+        logger.error("ERROR: Upscale Image has happened CalledProcessError.")
         return jsonify({'errors': 'Upscale Image CalledProcessError： '+ ret})
     
 
@@ -89,10 +113,13 @@ def imageUpscaling():
     if request.method == 'GET':
         return "Upscaling Image Test"
     if request.method == 'POST':
-        # 如果ImageFile上传文件不符合规范
+        # 如果ImageFile没有上传文件
         if request.files.get('ImageFile')  == None:
+            logger.error("ERROR: uploaded ImageFile has not been found."
+                         "Unable to do subsequent operations")
             return jsonify({'errors': 'ImageFile does not meet specifications'})
         file_obj = request.files['ImageFile']
+        # 如果ImageFile上传文件不符合规范
         if file_obj != None and file_obj.filename != "":
             fullfileName = file_obj.filename
             file_name,file_ext =  os.path.splitext(fullfileName)
@@ -104,6 +131,10 @@ def imageUpscaling():
             # TODO: 到底要不要alpha channel
             outFile = outputDir + SLASH + file_name + "_upscaling_" + imgScale + "x_" + model + "." + saveImageAs
             if model == FIGURE_MODEL or model == FIGURE_PRO_MODEL :
+                logger.info('INFO: UPSACLE IMAGE CONTAINS FIGURE.'
+                            'USES FIGURE INFERENCE')
+                logger.debug('DEBUG: UPSACLE IMAGE CONTAINS FIGURE.'
+                            'USES FIGURE INFERENCE')
                 inputImg = inputDir + SLASH + fullfileName
                 figure_inference(inputImg, outFile, modelsPath, FIGURE_BACKGROUND_MODEL, model, imgScale, gpuid, saveImageAs)
                 
@@ -114,6 +145,8 @@ def imageUpscaling():
                 if imgScale != DOUBLEUPSCALEFSCALEFACTOR:
                     origin_im = Image.open(imagePath)
                     upscale_im = Image.open(outFile)
+                    logger.info('INFO: UPSACLE IMAGE 6x,8x RESIZE LESS THAN 16.')
+                    logger.debug('DEBUG: UPSACLE IMAGE 6x,8x RESIZE LESS THAN 16.')
                     new_upscale_im = upscale_im.resize((origin_im.size[0] * int(imgScale), origin_im.size[1] * int(imgScale)))
                     new_upscale_im.save(outFile)
                
@@ -124,12 +157,19 @@ def imageUpscaling():
                 if imgScale < scale:
                     origin_im = Image.open(imagePath)
                     upscale_im = Image.open(outFile)
+                    logger.info('INFO: UPSACLE IMAGE 2x,3x RESIZE LESS THAN 4.')
+                    logger.debug('DEBUG: UPSACLE IMAGE 2x,3x RESIZE LESS THAN 4.')
                     new_upscale_im = upscale_im.resize((origin_im.size[0] * int(imgScale), origin_im.size[1] * int(imgScale)))
                     new_upscale_im.save(outFile)
 
             with open(outFile, "rb") as img_file:
                 Response = base64.b64encode(img_file.read())
-                return Response 
+                logger.info('INFO: RETURN THE RESPONSE FOR UPSCALING')
+                logger.debug('DEBUG: RETURN THE RESPONSE FOR UPSCALING')
+                return Response
+        
+        logger.error("ERROR: uploaded ImageFile format has not been satisified."
+                         "The Problem is file_obj == None or file_obj.filename != \"\" ")
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=80, debug=True)

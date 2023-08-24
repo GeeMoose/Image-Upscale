@@ -20,3 +20,7 @@ detection_Resnet50_Final.pth
 
 parsing_parsenet.pth
 
+## 日志模块
+
+master/constants.py的 DEBUG_MODE 决定日志是否开启debug模式
+

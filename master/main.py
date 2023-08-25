@@ -138,7 +138,7 @@ def imageUpscaling():
                 inputImg = inputDir + SLASH + fullfileName
                 figure_inference(inputImg, outFile, modelsPath, FIGURE_BACKGROUND_MODEL, model, imgScale, gpuid, saveImageAs)
                 
-            elif int(imgScale) >= DELIMITER:
+            elif int(imgScale) > DELIMITER:
                 # 双倍超分
                 double_upscale_image(inputDir,fullfileName,outFile,modelsPath,model,scale,gpuid,saveImageAs)
                 # 8x 缩放

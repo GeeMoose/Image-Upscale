@@ -31,8 +31,9 @@ Image-Upscale/
 |   |-- figure                      # Preprocessing functions and utilities
 |   |-- |-- figureInference.py      # Figure model processing scripts 
 |   |-- gfpgan                      # Detect figure basic model
-|   |-- |-- detection_Resnet50_Final.pth # Detect protrait 
-|   |-- |-- parsing_parsenet.pth         # Parsing protrait
+|   |-- |-- weights
+|   |-- |-- |-- detection_Resnet50_Final.pth # Detect protrait 
+|   |-- |-- |-- parsing_parsenet.pth         # Parsing protrait
 |   |-- constants.py                # File contains all default constants
 |   |-- instance.py                 # Input args test file
 |   |-- logsConfig.py               # Logs config file

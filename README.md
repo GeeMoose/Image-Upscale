@@ -53,10 +53,12 @@ master/constants.py的 DEBUG_MODE 决定日志是否开启debug模式
 
 ## Citation
 
+```
 @article{wang2022restoreformer,
   title={RestoreFormer: High-Quality Blind Face Restoration from Undegraded Key-Value Pairs},
   author={Wang, Zhouxia and Zhang, Jiawei and Chen, Runjian and Wang, Wenping and Luo, Ping},
   booktitle={The IEEE Conference on Computer Vision and Pattern Recognition (CVPR)},
   year={2022}
 }
+```
 

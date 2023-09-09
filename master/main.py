@@ -13,6 +13,7 @@ from figure import figure_inference
 from logsConfig import configure_logging
 
 import os, base64
+import requests
 import logging
 
 app = Flask(__name__)
@@ -104,6 +105,15 @@ def spawnUpscaling(commands,arguments):
     executor = commands + ',' + args
     return executor.split(',')
 
+def download_image(url, filename):
+    response = requests.get(url)
+    if response.status_code == 200:
+        with open(filename, 'wb') as file:
+            file.write(response.content)
+            logger.info(f'图片已成功保存为 {filename}')
+    else:
+        logger.error(f'下载图片时出错，状态码：{response.status_code}')
+
 @app.route('/')
 def index():
     return "Editing Image Test"
@@ -114,62 +124,120 @@ def imageUpscaling():
         return "Upscaling Image Test"
     if request.method == 'POST':
         # 如果ImageFile没有上传文件
-        if request.files.get('ImageFile')  == None:
+        if request.files.get('ImageFile') == None and request.json.get('imageUrl') == "":
             logger.error("ERROR: uploaded ImageFile has not been found."
                          "Unable to do subsequent operations")
             return jsonify({'errors': 'ImageFile does not meet specifications'})
-        file_obj = request.files['ImageFile']
-        # 如果ImageFile上传文件符合规范
-        if file_obj != None and file_obj.filename != "":
-            fullfileName = file_obj.filename
-            file_name,file_ext =  os.path.splitext(fullfileName)
-            file_obj.save(inputDir + SLASH + fullfileName)
-            imagePath = inputDir + SLASH + file_obj.filename
-            model = request.form.get('model')
-            imgScale = request.form.get('scale')
-            saveImageAs =  file_ext[1:]
-            # TODO: 到底要不要alpha channel
-            outFile = outputDir + SLASH + file_name + "_upscaling_" + imgScale + "x_" + model + "." + saveImageAs
-            if model == FIGURE_MODEL or model == FIGURE_PRO_MODEL:
-                logger.info('INFO: UPSACLE IMAGE CONTAINS FIGURE.'
-                            'USES FIGURE INFERENCE')
-                logger.debug('DEBUG: UPSACLE IMAGE CONTAINS FIGURE.'
-                            'USES FIGURE INFERENCE')
-                inputImg = inputDir + SLASH + fullfileName
-                figure_inference(inputImg, outFile, modelsPath, FIGURE_BACKGROUND_MODEL, model, imgScale, gpuid, saveImageAs)
+        # 按照form-data的格式上传
+        elif request.files.get('ImageFile') != None:
+            file_obj = request.files['ImageFile']
+            # 如果ImageFile上传文件不符合规范
+            if file_obj != None and file_obj.filename != "":
+                fullfileName = file_obj.filename
+                file_name,file_ext =  os.path.splitext(fullfileName)
+                file_obj.save(inputDir + SLASH + fullfileName)
+                imagePath = inputDir + SLASH + file_obj.filename
+                model = request.form.get('model')
+                imgScale = request.form.get('scale')
+                saveImageAs =  file_ext[1:]
+                # TODO: 到底要不要alpha channel
+                outFile = outputDir + SLASH + file_name + "_upscaling_" + imgScale + "x_" + model + "." + saveImageAs
+                if model == FIGURE_MODEL or model == FIGURE_PRO_MODEL:
+                    logger.info('INFO: UPSACLE IMAGE CONTAINS FIGURE.'
+                                'USES FIGURE INFERENCE')
+                    logger.debug('DEBUG: UPSACLE IMAGE CONTAINS FIGURE.'
+                                'USES FIGURE INFERENCE')
+                    inputImg = inputDir + SLASH + fullfileName
+                    figure_inference(inputImg, outFile, modelsPath, FIGURE_BACKGROUND_MODEL, model, imgScale, gpuid, saveImageAs)
+                    
+                elif int(imgScale) > DELIMITER:
+                    # 双倍超分
+                    double_upscale_image(inputDir,fullfileName,outFile,modelsPath,model,scale,gpuid,saveImageAs)
+                    # 8x 缩放
+                    if imgScale != DOUBLEUPSCALEFSCALEFACTOR:
+                        origin_im = Image.open(imagePath)
+                        upscale_im = Image.open(outFile)
+                        logger.info('INFO: UPSACLE IMAGE 6x,8x RESIZE LESS THAN 16.')
+                        logger.debug('DEBUG: UPSACLE IMAGE 6x,8x RESIZE LESS THAN 16.')
+                        new_upscale_im = upscale_im.resize((origin_im.size[0] * int(imgScale), origin_im.size[1] * int(imgScale)))
+                        new_upscale_im.save(outFile)
                 
-            elif int(imgScale) > DELIMITER:
-                # 双倍超分
-                double_upscale_image(inputDir,fullfileName,outFile,modelsPath,model,scale,gpuid,saveImageAs)
-                # 8x 缩放
-                if imgScale != DOUBLEUPSCALEFSCALEFACTOR:
-                    origin_im = Image.open(imagePath)
-                    upscale_im = Image.open(outFile)
-                    logger.info('INFO: UPSACLE IMAGE 6x,8x RESIZE LESS THAN 16.')
-                    logger.debug('DEBUG: UPSACLE IMAGE 6x,8x RESIZE LESS THAN 16.')
-                    new_upscale_im = upscale_im.resize((origin_im.size[0] * int(imgScale), origin_im.size[1] * int(imgScale)))
-                    new_upscale_im.save(outFile)
-               
-            else:
-                upscale_image(inputDir,fullfileName,outFile,modelsPath,model,scale,gpuid,saveImageAs)
-                # 2x、3x 缩放
-                # e.g. '2' < '3' '3' <  '4'
-                if imgScale < scale:
-                    origin_im = Image.open(imagePath)
-                    upscale_im = Image.open(outFile)
-                    logger.info('INFO: UPSACLE IMAGE 2x,3x RESIZE LESS THAN 4.')
-                    logger.debug('DEBUG: UPSACLE IMAGE 2x,3x RESIZE LESS THAN 4.')
-                    new_upscale_im = upscale_im.resize((origin_im.size[0] * int(imgScale), origin_im.size[1] * int(imgScale)))
-                    new_upscale_im.save(outFile)
+                else:
+                    upscale_image(inputDir,fullfileName,outFile,modelsPath,model,scale,gpuid,saveImageAs)
+                    # 2x、3x 缩放
+                    # e.g. '2' < '3' '3' <  '4'
+                    if imgScale < scale:
+                        origin_im = Image.open(imagePath)
+                        upscale_im = Image.open(outFile)
+                        logger.info('INFO: UPSACLE IMAGE 2x,3x RESIZE LESS THAN 4.')
+                        logger.debug('DEBUG: UPSACLE IMAGE 2x,3x RESIZE LESS THAN 4.')
+                        new_upscale_im = upscale_im.resize((origin_im.size[0] * int(imgScale), origin_im.size[1] * int(imgScale)))
+                        new_upscale_im.save(outFile)
 
-            with open(outFile, "rb") as img_file:
-                Response = base64.b64encode(img_file.read())
-                logger.info('INFO: RETURN THE RESPONSE FOR UPSCALING')
-                logger.debug('DEBUG: RETURN THE RESPONSE FOR UPSCALING')
-                return Response
-        
-        logger.error("ERROR: uploaded ImageFile format has not been satisified."
-                         "The Problem is file_obj == None or file_obj.filename != \"\" ")
+                with open(outFile, "rb") as img_file:
+                    Response = base64.b64encode(img_file.read())
+                    logger.info('INFO: RETURN THE RESPONSE FOR UPSCALING')
+                    logger.debug('DEBUG: RETURN THE RESPONSE FOR UPSCALING')
+                    return Response
+            
+            logger.error("ERROR: uploaded ImageFile format has not been satisified."
+                            "The Problem is file_obj == None or file_obj.filename == \"\" ")
+
+        # 按照json raw data格式上传
+        elif request.json.get('imageUrl') != "":
+            imageUrl = request.json.get('imageUrl') 
+            model = request.json.get('model')
+            imgScale = request.json.get('scale')
+            fullfileName = imageUrl.split('/')[-1]
+            # 正确解析imageUrl的话
+            if fullfileName != "":
+                file_name,file_ext =  os.path.splitext(fullfileName)
+                # 原始图片保存地址
+                imagePath = inputDir + SLASH + fullfileName
+                download_image(imageUrl,imagePath)
+                saveImageAs =  file_ext[1:]
+                # TODO: 到底要不要alpha channel
+                outFile = outputDir + SLASH + file_name + "_upscaling_" + imgScale + "x_" + model + "." + saveImageAs
+                if model == FIGURE_MODEL or model == FIGURE_PRO_MODEL :
+                    logger.info('INFO: UPSACLE IMAGE CONTAINS FIGURE.'
+                                'USES FIGURE INFERENCE')
+                    logger.debug('DEBUG: UPSACLE IMAGE CONTAINS FIGURE.'
+                                'USES FIGURE INFERENCE')
+                    inputImg = inputDir + SLASH + fullfileName
+                    figure_inference(inputImg, outFile, modelsPath, FIGURE_BACKGROUND_MODEL, model, imgScale, gpuid, saveImageAs)
+                    
+                elif int(imgScale) > DELIMITER:
+                    # 双倍超分
+                    double_upscale_image(inputDir,fullfileName,outFile,modelsPath,model,scale,gpuid,saveImageAs)
+                    # 8x 缩放
+                    if imgScale != DOUBLEUPSCALEFSCALEFACTOR:
+                        origin_im = Image.open(imagePath)
+                        upscale_im = Image.open(outFile)
+                        logger.info('INFO: UPSACLE IMAGE 6x,8x RESIZE LESS THAN 16.')
+                        logger.debug('DEBUG: UPSACLE IMAGE 6x,8x RESIZE LESS THAN 16.')
+                        new_upscale_im = upscale_im.resize((origin_im.size[0] * int(imgScale), origin_im.size[1] * int(imgScale)))
+                        new_upscale_im.save(outFile)
+                
+                else:
+                    upscale_image(inputDir,fullfileName,outFile,modelsPath,model,scale,gpuid,saveImageAs)
+                    # 2x、3x 缩放
+                    # e.g. '2' < '3' '3' <  '4'
+                    if imgScale < scale:
+                        origin_im = Image.open(imagePath)
+                        upscale_im = Image.open(outFile)
+                        logger.info('INFO: UPSACLE IMAGE 2x,3x RESIZE LESS THAN 4.')
+                        logger.debug('DEBUG: UPSACLE IMAGE 2x,3x RESIZE LESS THAN 4.')
+                        new_upscale_im = upscale_im.resize((origin_im.size[0] * int(imgScale), origin_im.size[1] * int(imgScale)))
+                        new_upscale_im.save(outFile)
+
+                with open(outFile, "rb") as img_file:
+                    Response = base64.b64encode(img_file.read()).decode('utf-8')
+                    logger.info('INFO: RETURN THE RESPONSE FOR UPSCALING')
+                    logger.debug('DEBUG: RETURN THE RESPONSE FOR UPSCALING')
+                    return f"data:image/{saveImageAs};base64,{Response}"
+
+            logger.error("ERROR: parse obtained imageUrl has not been satisified."
+                    "The Problem is fullfileName == \"\" ")
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=3000, debug=True)

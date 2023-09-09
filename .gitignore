@@ -3,3 +3,5 @@ master/gfpgan/*
 models/GFPGANv1.3.pth
 models/GFPGANv1.4.pth
 logs/*
+outputs/*
+assets/*

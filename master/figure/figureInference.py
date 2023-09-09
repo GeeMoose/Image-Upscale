@@ -17,16 +17,12 @@ def set_realesrgan(model_name, model_path):
     return RealESRGANer(scale=2, model_path=model_path + SLASH + model_name, model=model, tile=400, tile_pad=10, pre_pad=0, half=half)
 
 def set_figure_face_enhancer(upsampler, model, model_path):
-    return GFPGANer(model_path=model_path + SLASH + model, upscale=2, arch='clean', channel_multiplier=2, bg_upsampler=upsampler)
+    return GFPGANer(model_path=model_path + SLASH + model, upscale=2, arch='RestoreFormer', channel_multiplier=2, bg_upsampler=upsampler)
 
 def figure_inference(input_img, outFile, models_path, general_model, figure_model, scale, gpuid, saveImageAs):
 # def figure_inference(input_img, outFile, scale, model_path, model, gpuid, saveImageAs):
     # 根据已有的模型做输出
     scale = int(scale)
-    if scale > 4:
-        scale = 4
-    elif scale < 0:
-        scale = 1
     
     try:
         # img_name = os.path.splitext(os.path.basename(str(input_img)))[0]
@@ -46,8 +42,8 @@ def figure_inference(input_img, outFile, models_path, general_model, figure_mode
             return None, None
         
         # FIX 过分小的图片要不要先做处理??
-        if h < 300 or w < 300:
-            img = cv2.resize(img, (w * 2, h * 2), interpolation=cv2.INTER_LANCZOS4)
+        # if h < 300 or w < 300:
+        #     img = cv2.resize(img, (w * 2, h * 2), interpolation=cv2.INTER_LANCZOS4)
 
         bg_upsampler = set_realesrgan(general_model, models_path)
         face_enhancer = set_figure_face_enhancer(bg_upsampler, figure_model, models_path)
@@ -61,8 +57,8 @@ def figure_inference(input_img, outFile, models_path, general_model, figure_mode
             if scale != 2:
                 # 根据scale自适应调整
                 interpolation = cv2.INTER_AREA if scale < 2 else cv2.INTER_LANCZOS4
-                h, w = img.shape[0:2]
-                output = cv2.resize(output, (int(w * scale / 2), int(h * scale / 2)), interpolation=interpolation)
+                # h, w = img.shape[0:2]
+                output = cv2.resize(output, (int(w * scale), int(h * scale)), interpolation=interpolation)
         except Exception as error:
             print('wrong scale input.', error)
         

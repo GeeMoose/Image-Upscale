@@ -4,8 +4,8 @@
 
 SLASH = "/"
 COMMANDS = "../bin/upscaling-realesrgan.exe"
-FIGURE_MODEL = "GFPGANv1.3.pth"
-FIGURE_PRO_MODEL = "GFPGANv1.4.pth"
+FIGURE_MODEL = "RestoreFormer.pth"
+FIGURE_PRO_MODEL = ""
 FIGURE_BACKGROUND_MODEL = "RealESRGAN_x2plus.pth"
 DELIMITER = 4
 DOUBLEUPSCALEFSCALEFACTOR = '16'

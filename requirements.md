@@ -20,3 +20,5 @@ basicsr
 facexlib
 gfpgan
 realesrgan
+flask 
+flask_cors

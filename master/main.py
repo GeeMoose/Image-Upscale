@@ -119,7 +119,7 @@ def imageUpscaling():
                          "Unable to do subsequent operations")
             return jsonify({'errors': 'ImageFile does not meet specifications'})
         file_obj = request.files['ImageFile']
-        # 如果ImageFile上传文件不符合规范
+        # 如果ImageFile上传文件符合规范
         if file_obj != None and file_obj.filename != "":
             fullfileName = file_obj.filename
             file_name,file_ext =  os.path.splitext(fullfileName)
@@ -130,7 +130,7 @@ def imageUpscaling():
             saveImageAs =  file_ext[1:]
             # TODO: 到底要不要alpha channel
             outFile = outputDir + SLASH + file_name + "_upscaling_" + imgScale + "x_" + model + "." + saveImageAs
-            if model == FIGURE_MODEL or model == FIGURE_PRO_MODEL :
+            if model == FIGURE_MODEL or model == FIGURE_PRO_MODEL:
                 logger.info('INFO: UPSACLE IMAGE CONTAINS FIGURE.'
                             'USES FIGURE INFERENCE')
                 logger.debug('DEBUG: UPSACLE IMAGE CONTAINS FIGURE.'
@@ -172,10 +172,7 @@ def imageUpscaling():
                          "The Problem is file_obj == None or file_obj.filename != \"\" ")
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=80, debug=True)
-
-
-     
+    app.run(host='0.0.0.0', port=3000, debug=True)
 # def main():
     
 #     # instants实例

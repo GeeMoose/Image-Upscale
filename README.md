@@ -10,9 +10,7 @@ running the image upscale for the various upscaling algorithms
 
 **人脸超分模型：**
 
-[GFPGANv1.3.pth](https://github.com/TencentARC/GFPGAN/releases/download/v1.3.0/GFPGANv1.3.pth) 
-
-[GFPGANv1.4.pth](https://github.com/TencentARC/GFPGAN/releases/download/v1.3.0/GFPGANv1.4.pth)
+[RestoreFormer.pth](https://github.com/wzhouxiff/RestoreFormer) 
 
 **检测人脸模型：**
 
@@ -52,4 +50,13 @@ Image-Upscale/
 ## LOGGING MODULE
 
 master/constants.py的 DEBUG_MODE 决定日志是否开启debug模式
+
+## Citation
+
+@article{wang2022restoreformer,
+  title={RestoreFormer: High-Quality Blind Face Restoration from Undegraded Key-Value Pairs},
+  author={Wang, Zhouxia and Zhang, Jiawei and Chen, Runjian and Wang, Wenping and Luo, Ping},
+  booktitle={The IEEE Conference on Computer Vision and Pattern Recognition (CVPR)},
+  year={2022}
+}
 
